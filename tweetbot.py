@@ -1,7 +1,6 @@
 from __future__ import division
 
 import twitter
-import time
 
 ENGLISH_WORD_PERCENTAGE = .5
 
@@ -17,22 +16,28 @@ lis = api.GetStreamSample()
 with open('/usr/share/dict/words','r') as w:
     words = set(c.strip() for c in w.readlines())
 
-for tweet in lis:
-    try:
-        l = len(tweet['text'].split())
-        count = 0
-        for word in tweet['text'].split():
-            if word in words:
-                count += 1
-        if count/l > ENGLISH_WORD_PERCENTAGE:
-            try:
-                print tweet['text'].replace("\n", " ")
-            except:
+
+def get_tweet():
+    for tweet in lis:
+        try:
+            l = len(tweet['text'].split())
+            count = 0
+            for word in tweet['text'].split():
+                if word in words:
+                    count += 1
+            if count/l > ENGLISH_WORD_PERCENTAGE:
+                try:
+                    return tweet['text'].replace("\n", " ")
+                except:
+                    pass
+            else:
                 pass
-        else:
+                #print "not english"
+                #print tweet['text']
+        except KeyError:
             pass
-            #print "not english"
-            #print tweet['text']
-    except KeyError:
-        pass
-        #print "deleted tweet"
+            #print "deleted tweet"
+
+if __name__ == '__main__':
+    while True:
+        print get_tweet().encode('utf-8')
