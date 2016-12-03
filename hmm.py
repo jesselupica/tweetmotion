@@ -24,6 +24,7 @@ class HiddenMarkovModel(object):
         return self.tag_pair_counts[t1, t2] / self.tag_counts[t1]
 
     def _get_word_tag_probability(self, word, tag):
+        print "word tag count " + word + " " + tag + ": " + str(self.word_tag_counts[word, tag])
         return self.word_tag_counts[word, tag] / self.tag_counts[tag]
 
     def tag_tweet(self, tweet):
@@ -45,10 +46,12 @@ class HiddenMarkovModel(object):
         i = len(graph) - 2
         while(seq[-1].bptr != -1):
             seq.append(graph[i][best_last_node.bptr])
+            best_last_node = graph[i][best_last_node.bptr]
             i -= 1
 
         seq = reversed(seq)
-        return Tweet(tweet, [x.tag for x in seq], trainer=False)
+        tags =  [x.tag for x in seq]
+        return Tweet(tweet, tags, trainer=False)
 
 
 if __name__ == "__main__":
@@ -61,4 +64,5 @@ if __name__ == "__main__":
     while True:
         x = raw_input()
         x = x.split()
+        x = ['TWEET_START'] + x
         print h.tag_tweet(x)
