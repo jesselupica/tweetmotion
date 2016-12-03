@@ -5,6 +5,7 @@ from tweet import Tweet
 from processor import process_file
 from tqdm import tqdm
 import argparse
+import clusters 
 
 TAGS = ['TWEET_START', 'HAPPY', 'SAD', 'NEUTRAL', 'ANGRY', 'EXCITED', 'FUNNY', 'THOUGHTFUL']
 
@@ -17,14 +18,14 @@ class HiddenMarkovModel(object):
         for tweet in tqdm(train_data):
             self.tag_counts.update(x.tag for x in tweet)
             self.tag_pair_counts.update((x.tag, y.tag) for x,y in zip(tweet, tweet[1:]))
-            self.word_tag_counts.update((x.word, x.tag) for x in tweet)
+            self.word_tag_counts.update((clusters.get_cluster_id(x.word), x.tag) for x in tweet)
 
 
     def _get_tag_probability(self, t1, t2):
         return self.tag_pair_counts[t1, t2] / self.tag_counts[t1]
 
     def _get_word_tag_probability(self, word, tag):
-        return self.word_tag_counts[word, tag] / self.tag_counts[tag]
+        return self.word_tag_counts[clusters.get_cluster_id(word), tag] / self.tag_counts[tag]
 
     def tag_tweet(self, tweet):
         GraphNode = namedtuple('GraphNode', ['tag', 'prob', 'bptr'])
