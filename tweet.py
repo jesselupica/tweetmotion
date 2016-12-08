@@ -1,5 +1,8 @@
-from collections import MutableSequence
-from collections import namedtuple
+from collections import MutableSequence, namedtuple, Counter
+
+POSITIVE_TAGS = set(['HAPPY', 'EXCITED', 'FUNNY'])
+NEUTRAL_TAGS = set(['NEUTRAL', 'THOUGHTFUL'])
+NEGATIVE_TAGS = set(['SAD', 'ANGRY'])
 
 class Tweet(MutableSequence):
     def __init__(self, words, tags, trainer=True):
@@ -11,8 +14,15 @@ class Tweet(MutableSequence):
             self.tokens = []
         for w, t in zip(words, tags):
             self.tokens.append(TweetWord(w, t))
+        self.sentence_tag_tweet()
 
-    def add_sentence_tags(self, emotion, sentiment):
+    def sentence_tag_tweet(self):
+        tags = Counter(w.tag for w in self.tokens)
+        emotion = tags.most_common(1)[0][0]
+        positive_score = sum(tags[tag] for tag in POSITIVE_TAGS)
+        negative_score = sum(tags[tag] for tag in NEGATIVE_TAGS)
+        neutral_score = sum(tags[tag] for tag in NEUTRAL_TAGS)
+        sentiment = max([("POSITIVE", positive_score), ("NEGATIVE", negative_score), ("NEUTRAL", neutral_score)], key=lambda x : x[1])[0]
         self.emotion = emotion
         self.sentiment = sentiment
 
