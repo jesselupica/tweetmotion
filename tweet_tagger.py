@@ -1,9 +1,14 @@
 import sys
 import termcolor 
 from getch import getch
+import argparse
 
-input_file = sys.argv[1]
-output_file = sys.argv[2]
+parser = argparse.ArgumentParser()
+parser.add_argument("input_file")
+parser.add_argument("output_file")
+args = parser.parse_args()
+input_file = args.input_file
+output_file = args.output_file
 f = open(input_file, 'r')
 tweets = f.readlines()
 
