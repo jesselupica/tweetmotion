@@ -82,7 +82,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A tweet mood tagger CS 4701")
     parser.add_argument("training_tweets", help="The tagged tweets to train the model")
     parser.add_argument("--no_clusters", help="Don't use word clusters", action="store_const", const=True, default=False)
-    parser.add_argument("--test_model", help="Test model against tagged test set", default=None)
+    parser.add_argument("--test_model", help="Test model against tagged test set", action="store_const", const=True, default=False)
     parser.add_argument("--untagged_data", help="Untagged data for the model to run on", default=None)
     parser.add_argument("--tagged_data", help="Data to compare validity of model", default=None)
 
@@ -106,11 +106,11 @@ if __name__ == "__main__":
 
         untagged_f = open(args.untagged_data, 'r')
         model_tagged_tweets = []
-        untagged_tweets = untagged_f.getlines()
+        untagged_tweets = untagged_f.readlines()
         for tweet in untagged_tweets: 
             model_tagged_tweets.append(model.tag_tweet(tweet))
 
-        assert(len(tagged_tweet) == len(model_tagged_tweets))
+        assert(len(tagged_tweets) == len(model_tagged_tweets))
         percent_matches = []
         sentence_sent_tag_matches = []
         sentence_emo_tag_matches = []
@@ -123,6 +123,6 @@ if __name__ == "__main__":
 
         print "TEST DATA RESULTS:"
         print "--------------------------------"
-        print "average token match rate: " + str(sum(percent_matches)/len(percent_matches))
-        print "average sentence level match rate: " + str(sentence_sent_tag_matches.count(True)/len(sentence_sent_tag_matches))
-        print "average emotion match rate: " + str(sentence_emo_tag_matches.count(True)/len(sentence_emo_tag_matches))
+        print "average token match rate: " + str(round(sum(percent_matches)/len(percent_matches) * 100, 2)) + '%'
+        print "average sentence level match rate: " + str(round(sentence_sent_tag_matches.count(True)/len(sentence_sent_tag_matches) * 100, 2))  + '%'
+        print "average emotion match rate: " + str(round(sentence_emo_tag_matches.count(True)/len(sentence_emo_tag_matches)*100, 2)) + '%'
