@@ -47,6 +47,10 @@ class HiddenMarkovModel(object):
                 return self.epsilon
 
     def tag_tweet(self, tweet):
+        tweet = tweet.split()
+        if tweet[0] == "RT" or tweet[1][0] == "@":
+            tweet = tweet[2:]
+        tweet = ['TWEET_START'] + tweet
         for i, t in enumerate(tweet):
             new = "".join(c for c in t if c in string.ascii_letters + string.digits)
             if new != "":
@@ -91,6 +95,8 @@ if __name__ == "__main__":
     parser.add_argument("training_tweets", help="The tagged tweets to train the model")
     parser.add_argument("--no_clusters", help="Don't use word clusters", action="store_const", const=True, default=False)
     parser.add_argument("--test_model", help="Test model against tagged test set", default=None)
+    parser.add_argument("--untagged_data", help="Untagged data for the model to run on", default=None)
+    parser.add_argument("--tagged_data", help="Data to compare validity of model", default=None)
 
     args = parser.parse_args()
     tweets = process_file(args.training_tweets)
@@ -100,10 +106,6 @@ if __name__ == "__main__":
             raw_input()
             x = tweetbot.get_tweet()
             print x
-            x = x.split()
-            if x[0] == "RT" or x[1][0] == "@":
-                x = x[2:]
-            x = ['TWEET_START'] + x
             tagged_tweet = model.tag_tweet(x)
             model.sentence_tag_tweet(tagged_tweet)
             print "EMOTION: " + tagged_tweet.get_emotion()
@@ -113,4 +115,27 @@ if __name__ == "__main__":
             for w in tagged_tweet[1:]:
                 print w.word + " : " + w.tag
     else:
-        pass
+        tagged_tweets = process_file(args.tagged_data)
+
+        untagged_f = open(args.untagged_data, 'r')
+        model_tagged_tweets = []
+        untagged_tweets = untagged_f.getlines()
+        for tweet in untagged_tweets: 
+            model_tagged_tweets.append(model.tag_tweet(tweet))
+
+        assert(len(tagged_tweet) == len(model_tagged_tweets))
+        percent_matches = []
+        sentence_sent_tag_matches = []
+        sentence_emo_tag_matches = []
+        for t_tweet, mt_tweet in zip(tagged_tweets, model_tagged_tweets):
+            assert(len(t_tweet) == len(mt_tweet))
+            matches = [t_w.tag == mt_w.tag for t_w, mt_w in zip(t_tweet, mt_tweet)]
+            percent_matches.append(matches.count(True)/len(matches))
+            sentence_emo_tag_matches.append(t_tweet.get_emotion() == mt_tweet.get_emotion())
+            sentence_sent_tag_matches.append(t_tweet.get_sentiment() == mt_tweet.get_sentiment())
+
+        print "TEST DATA RESULTS:"
+        print "--------------------------------"
+        print "average token match rate: " + str(sum(percent_matches)/len(percent_matches))
+        print "average sentence level match rate: " + str(sentence_sent_tag_matches.count(True)/len(sentence_sent_tag_matches))
+        print "average emotion match rate: " + str(sentence_emo_tag_matches.count(True)/len(sentence_emo_tag_matches))
