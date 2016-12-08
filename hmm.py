@@ -1,5 +1,6 @@
 from __future__ import division
 from collections import Counter
+import string
 from collections import namedtuple
 from tweet import Tweet
 from processor import process_file
@@ -9,6 +10,9 @@ import clusters
 import tweetbot
 
 TAGS = ['TWEET_START', 'HAPPY', 'SAD', 'NEUTRAL', 'ANGRY', 'EXCITED', 'FUNNY', 'THOUGHTFUL']
+POSITIVE_TAGS = set(['HAPPY', 'EXCITED', 'FUNNY'])
+NEUTRAL_TAGS = set(['NEUTRAL', 'THOUGHTFUL'])
+NEGATIVE_TAGS = set(['SAD', 'ANGRY'])
 
 class HiddenMarkovModel(object):
     def __init__(self, train_data):
@@ -33,6 +37,8 @@ class HiddenMarkovModel(object):
             return self.epsilon
 
     def tag_tweet(self, tweet):
+        for i, t in enumerate(tweet):
+            tweet[i] = "".join(c for c in t if c in string.ascii_letters + string.digits)
         GraphNode = namedtuple('GraphNode', ['tag', 'prob', 'bptr'])
         graph = [[GraphNode(TAGS[0], 1.0, -1)]]
         for token in tweet[1:]: 
@@ -58,6 +64,15 @@ class HiddenMarkovModel(object):
         tags =  [x.tag for x in seq]
         return Tweet(tweet, tags, trainer=False)
 
+    def sentence_tag_tweet(self, tagged_tweet):
+        tags = Counter(w.tag for w in tagged_tweet)
+        emotion = tags.most_common(1)[0][0]
+        positive_score = sum(tags[tag] for tag in POSITIVE_TAGS)
+        negative_score = sum(tags[tag] for tag in NEGATIVE_TAGS)
+        neutral_score = sum(tags[tag] for tag in NEUTRAL_TAGS)
+        sentiment = max([("POSITIVE", positive_score), ("NEGATIVE", negative_score), ("NEUTRAL", neutral_score)], key=lambda x : x[1])[0]
+        tagged_tweet.add_sentence_tags(emotion, sentiment)
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A tweet mood tagger CS 4701")
@@ -71,6 +86,14 @@ if __name__ == "__main__":
         x = tweetbot.get_tweet()
         print x
         x = x.split()
+        if x[0] == "RT" or x[1][0] == "@":
+            x = x[2:]
         x = ['TWEET_START'] + x
-        for e in h.tag_tweet(x):
-            print e
+        tagged_tweet = h.tag_tweet(x)
+        h.sentence_tag_tweet(tagged_tweet)
+        print "EMOTION: " + tagged_tweet.get_emotion()
+        print "SENTIMENT: " + tagged_tweet.get_sentiment()
+        print "--------------------------------"
+        # Dont' print the start tag
+        for w in tagged_tweet[1:]:
+            print w.word + " : " + w.tag

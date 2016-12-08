@@ -12,6 +12,22 @@ class Tweet(MutableSequence):
         for w, t in zip(words, tags):
             self.tokens.append(TweetWord(w, t))
 
+    def add_sentence_tags(self, emotion, sentiment):
+        self.emotion = emotion
+        self.sentiment = sentiment
+
+    def get_emotion(self):
+        try:
+            return self.emotion
+        except NameError:
+            raise AttributeError("Error: sentence level tagging not done")
+
+    def get_sentiment(self):
+        try:
+            return self.sentiment
+        except NameError:
+            raise AttributeError("Errror: sentence level tagging not done")
+
     def insert(self, index, item):
         self.tokens.insert(index, item)
 
