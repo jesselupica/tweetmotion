@@ -10,9 +10,6 @@ import clusters
 import tweetbot
 
 TAGS = ['TWEET_START', 'HAPPY', 'SAD', 'NEUTRAL', 'ANGRY', 'EXCITED', 'FUNNY', 'THOUGHTFUL']
-POSITIVE_TAGS = set(['HAPPY', 'EXCITED', 'FUNNY'])
-NEUTRAL_TAGS = set(['NEUTRAL', 'THOUGHTFUL'])
-NEGATIVE_TAGS = set(['SAD', 'ANGRY'])
 
 class HiddenMarkovModel(object):
     def __init__(self, train_data, using_clusters=True):
@@ -74,17 +71,8 @@ class HiddenMarkovModel(object):
 
         seq = reversed(seq)
         tags =  [x.tag for x in seq]
-        return Tweet(tweet, tags, trainer=False)
-
-    def sentence_tag_tweet(self, tagged_tweet):
-        tags = Counter(w.tag for w in tagged_tweet)
-        emotion = tags.most_common(1)[0][0]
-        positive_score = sum(tags[tag] for tag in POSITIVE_TAGS)
-        negative_score = sum(tags[tag] for tag in NEGATIVE_TAGS)
-        neutral_score = sum(tags[tag] for tag in NEUTRAL_TAGS)
-        sentiment = max([("POSITIVE", positive_score), ("NEGATIVE", negative_score), ("NEUTRAL", neutral_score)], key=lambda x : x[1])[0]
-        tagged_tweet.add_sentence_tags(emotion, sentiment)
-
+        t = Tweet(tweet, tags, trainer=False)
+        return t
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="A tweet mood tagger CS 4701")
@@ -105,7 +93,6 @@ if __name__ == "__main__":
                 x = x[2:]
             x = ['TWEET_START'] + x
             tagged_tweet = model.tag_tweet(x)
-            model.sentence_tag_tweet(tagged_tweet)
             print "EMOTION: " + tagged_tweet.get_emotion()
             print "SENTIMENT: " + tagged_tweet.get_sentiment()
             print "--------------------------------"
