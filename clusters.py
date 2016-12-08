@@ -2,7 +2,7 @@ from collections import namedtuple
 
 clusters = {}
 
-with open('clusters.txt', 'r') as clust:
+with open('data/clusters.txt', 'r') as clust:
     clust_to_word = {}
     for line in clust:
         line = line.split()
