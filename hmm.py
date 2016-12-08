@@ -84,7 +84,7 @@ if __name__ == "__main__":
     parser.add_argument("--no_clusters", help="Don't use word clusters", action="store_const", const=True, default=False)
     parser.add_argument("--test_model", help="Test model against tagged test set", action="store_const", const=True, default=False)
     parser.add_argument("--untagged_data", help="Untagged data for the model to run on", default=None)
-    parser.add_argument("--tagged_data", help="Data to compare validity of model", default=None)
+    parser.add_argument("--tagged_data", help="Data to compare validity of model", default=[], action='append')
 
     args = parser.parse_args()
     tweets = process_file(args.training_tweets)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
             for w in tagged_tweet[1:]:
                 print w.word + " : " + w.tag
     else:
-        tagged_tweets = process_file(args.tagged_data)
+        tagged_tweets = list(zip(*tuple(map(process_file, args.tagged_data))))
 
         untagged_f = open(args.untagged_data, 'r')
         model_tagged_tweets = []
@@ -114,12 +114,22 @@ if __name__ == "__main__":
         percent_matches = []
         sentence_sent_tag_matches = []
         sentence_emo_tag_matches = []
-        for t_tweet, mt_tweet in zip(tagged_tweets, model_tagged_tweets):
-            assert(len(t_tweet) == len(mt_tweet))
-            matches = [t_w.tag == mt_w.tag for t_w, mt_w in zip(t_tweet, mt_tweet)]
+        for t_tweets, mt_tweet in zip(tagged_tweets, model_tagged_tweets):
+            for t in t_tweets:
+                assert(len(t) == len(mt_tweet))
+
+            emotion_match = False
+            sentiment_match = False
+            matches = [False] * len(mt_tweet)
+            for tweet in t_tweets:
+                emotion_match = emotion_match or (tweet.get_emotion() == mt_tweet.get_emotion())
+                sentiment_match = sentiment_match or (tweet.get_sentiment() == mt_tweet.get_sentiment())
+                for i, (t_w, mt_w) in enumerate(zip(tweet, mt_tweet)):
+                    matches[i] = matches[i] or (t_w.tag == mt_w.tag)
+
             percent_matches.append(matches.count(True)/len(matches))
-            sentence_emo_tag_matches.append(t_tweet.get_emotion() == mt_tweet.get_emotion())
-            sentence_sent_tag_matches.append(t_tweet.get_sentiment() == mt_tweet.get_sentiment())
+            sentence_emo_tag_matches.append(emotion_match)
+            sentence_sent_tag_matches.append(sentiment_match)
 
         print "TEST DATA RESULTS:"
         print "--------------------------------"
