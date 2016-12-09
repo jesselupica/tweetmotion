@@ -13,11 +13,11 @@ TAGS = ['TWEET_START', 'HAPPY', 'SAD', 'NEUTRAL', 'ANGRY', 'EXCITED', 'FUNNY', '
 
 class HiddenMarkovModel(object):
     def __init__(self, train_data, using_clusters=True):
+        print "Clusters: " + str(using_clusters)
         self.using_clusters=using_clusters
         self.tag_pair_counts = Counter()
         self.tag_counts = Counter()
         self.word_tag_counts = Counter()
-
         for tweet in tqdm(train_data):
             self.tag_counts.update(x.tag for x in tweet)
             self.tag_pair_counts.update((x.tag, y.tag) for x,y in zip(tweet, tweet[1:]))
@@ -89,7 +89,7 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
     tweets = process_file(args.training_tweets)
-    model = HiddenMarkovModel(tweets, args.no_clusters)
+    model = HiddenMarkovModel(tweets, not args.no_clusters)
     if not args.test_model:
         print "Press enter to retrieve and tag a tweet"
         while True:

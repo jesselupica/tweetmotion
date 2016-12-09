@@ -21,7 +21,7 @@ all_no_cluster:
 tweets:
 	python -u tweetbot.py
 
-tag_random:
+tag_random_cluster:
 	python hmm.py data/all_training_tweets.txt
 
 tag_random_no_cluster:
