@@ -46,7 +46,7 @@ class HiddenMarkovModel(object):
 
     def tag_tweet(self, tweet):
         tweet = tweet.split()
-        if tweet[0] == "RT" or tweet[1][0] == "@":
+        if len(tweet) > 1 and (tweet[0] == "RT" or tweet[1][0] == "@"):
             tweet = tweet[2:]
         tweet = ['TWEET_START'] + tweet
         for i, t in enumerate(tweet):
@@ -86,16 +86,15 @@ if __name__ == "__main__":
     parser.add_argument("--test_model", help="Test model against tagged test set", action="store_const", const=True, default=False)
     parser.add_argument("--untagged_data", help="Untagged data for the model to run on", default=None)
     parser.add_argument("--tagged_data", help="Data to compare validity of model", default=[], action='append')
+    parser.add_argument("--manual_entry", help="Manually enter data to tag", action="store_const", const=True, default=False)
 
     args = parser.parse_args()
     tweets = process_file(args.training_tweets)
     model = HiddenMarkovModel(tweets, not args.no_clusters)
-    if not args.test_model:
-        print "Press enter to retrieve and tag a tweet"
+    if args.manual_entry:
+        print "Enter a string to be tagged, then hit enter"
         while True:
-            raw_input()
-            x = tweetbot.get_tweet()
-            print x
+            x = raw_input()
             tagged_tweet = model.tag_tweet(x)
             print "EMOTION: " + tagged_tweet.get_emotion()
             print "SENTIMENT: " + tagged_tweet.get_sentiment()
@@ -103,6 +102,33 @@ if __name__ == "__main__":
             # Dont' print the start tag
             for w in tagged_tweet[1:]:
                 print w.word + " : " + w.tag
+            print "\n"
+    if not args.test_model:
+        if not args.untagged_data:
+            print "Press enter to retrieve and tag a tweet"
+            while True:
+                raw_input()
+                x = tweetbot.get_tweet()
+                print x
+                tagged_tweet = model.tag_tweet(x)
+                print "EMOTION: " + tagged_tweet.get_emotion()
+                print "SENTIMENT: " + tagged_tweet.get_sentiment()
+                print "--------------------------------"
+                # Dont' print the start tag
+                for w in tagged_tweet[1:]:
+                    print w.word + " : " + w.tag
+        else:
+            with open(args.untagged_data, 'r') as f:
+                for line in f:
+                    print line
+                    tagged_tweet = model.tag_tweet(line)
+                    print "EMOTION: " + tagged_tweet.get_emotion()
+                    print "SENTIMENT: " + tagged_tweet.get_sentiment()
+                    print "--------------------------------"
+                    # Dont' print the start tag
+                    for w in tagged_tweet[1:]:
+                        print w.word + " : " + w.tag
+                    print "\n"
     else:
         tagged_tweets = list(zip(*tuple(map(process_file, args.tagged_data))))
 

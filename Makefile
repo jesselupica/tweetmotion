@@ -29,3 +29,15 @@ tag_random_no_cluster:
 
 human_compare:
 	python test_agreement.py data/jesse_test_tweets.txt data/jimmy_test_tweets.txt
+
+file_demo_no_cluster:
+	python hmm.py data/all_training_tweets.txt --untagged_data data/demo_tweets.txt --no_cluster
+
+file_demo_cluster:
+	python hmm.py data/all_training_tweets.txt --untagged_data data/demo_tweets.txt
+
+manual_demo_cluster:
+	python hmm.py data/all_training_tweets.txt --manual_entry
+
+manual_demo_no_cluster:
+	python hmm.py data/all_training_tweets.txt --manual_entry --no_cluster
