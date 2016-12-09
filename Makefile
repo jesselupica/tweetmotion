@@ -24,5 +24,8 @@ tweets:
 tag_random:
 	python hmm.py data/all_training_tweets.txt
 
+tag_random_no_cluster:
+	python hmm.py data/all_training_tweets.txt --no_cluster
+
 human_compare:
 	python test_agreement.py data/jesse_test_tweets.txt data/jimmy_test_tweets.txt

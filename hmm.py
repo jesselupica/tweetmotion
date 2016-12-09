@@ -25,6 +25,7 @@ class HiddenMarkovModel(object):
                 self.word_tag_counts.update((clusters.get_cluster_id(x.word), x.tag) for x in tweet)
             else:
                 self.word_tag_counts.update((x.word, x.tag) for x in tweet)
+
         self.epsilon = (min((x[1] for x in self.word_tag_counts.iteritems()))/max(x[1] for x in self.tag_counts.iteritems())) * .1
 
 
@@ -90,6 +91,7 @@ if __name__ == "__main__":
     tweets = process_file(args.training_tweets)
     model = HiddenMarkovModel(tweets, args.no_clusters)
     if not args.test_model:
+        print "Press enter to retrieve and tag a tweet"
         while True:
             raw_input()
             x = tweetbot.get_tweet()
