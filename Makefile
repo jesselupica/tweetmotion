@@ -11,10 +11,8 @@ all_cluster:
 jesse_no_cluster:
 	python hmm.py data/all_training_tweets.txt --test_model --untagged_data data/untagged_test_tweets.txt --tagged_data data/all_test_tweets.txt --no_cluster
 
-
 jimmy_no_cluster:
 	python hmm.py data/all_training_tweets.txt --test_model --untagged_data data/untagged_test_tweets.txt --tagged_data data/j_test_tweets.txt --no_cluster
-
 
 all_no_cluster:
 	python hmm.py data/all_training_tweets.txt --test_model --untagged_data data/untagged_test_tweets.txt \
