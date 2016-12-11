@@ -12,19 +12,26 @@ import tweetbot
 TAGS = ['TWEET_START', 'HAPPY', 'SAD', 'NEUTRAL', 'ANGRY', 'EXCITED', 'FUNNY', 'THOUGHTFUL']
 
 class HiddenMarkovModel(object):
-    def __init__(self, train_data, using_clusters=True):
+    def __init__(self, train_data, using_clusters=True, using_both=False):
         print "Clusters: " + str(using_clusters)
         self.using_clusters=using_clusters
+        self.using_both=using_both
         self.tag_pair_counts = Counter()
         self.tag_counts = Counter()
         self.word_tag_counts = Counter()
+        if self.using_both:
+            self.cluster_word_tag_counts = Counter()
         for tweet in tqdm(train_data):
             self.tag_counts.update(x.tag for x in tweet)
             self.tag_pair_counts.update((x.tag, y.tag) for x,y in zip(tweet, tweet[1:]))
-            if self.using_clusters:
-                self.word_tag_counts.update((clusters.get_cluster_id(x.word), x.tag) for x in tweet)
+            if not self.using_both:
+                if self.using_clusters:
+                    self.word_tag_counts.update((clusters.get_cluster_id(x.word), x.tag) for x in tweet)
+                else:
+                    self.word_tag_counts.update((x.word, x.tag) for x in tweet)
             else:
                 self.word_tag_counts.update((x.word, x.tag) for x in tweet)
+                self.cluster_word_tag_counts.update((clusters.get_cluster_id(x.word), x.tag) for x in tweet)
 
         self.epsilon = (min((x[1] for x in self.word_tag_counts.iteritems()))/max(x[1] for x in self.tag_counts.iteritems())) * .1
 
@@ -33,6 +40,14 @@ class HiddenMarkovModel(object):
         return self.tag_pair_counts[t1, t2] / self.tag_counts[t1]
 
     def _get_word_tag_probability(self, word, tag):
+        if self.using_both:
+            if self.word_tag_counts[word, tag] > 0:
+                return self.word_tag_counts[word, tag] / self.tag_counts[tag]
+            else:
+                if self.cluster_word_tag_counts[clusters.get_cluster_id(word), tag] > 0:
+                    return self.cluster_word_tag_counts[clusters.get_cluster_id(word), tag] / self.tag_counts[tag]
+                else:
+                    return self.epsilon
         if self.using_clusters:
             if self.word_tag_counts[clusters.get_cluster_id(word), tag] > 0:
                 return self.word_tag_counts[clusters.get_cluster_id(word), tag] / self.tag_counts[tag]
@@ -87,10 +102,11 @@ if __name__ == "__main__":
     parser.add_argument("--untagged_data", help="Untagged data for the model to run on", default=None)
     parser.add_argument("--tagged_data", help="Data to compare validity of model", default=[], action='append')
     parser.add_argument("--manual_entry", help="Manually enter data to tag", action="store_const", const=True, default=False)
+    parser.add_argument("--use_both", help="Use clusters as backup", action="store_const", const=True, default=False)
 
     args = parser.parse_args()
     tweets = process_file(args.training_tweets)
-    model = HiddenMarkovModel(tweets, not args.no_clusters)
+    model = HiddenMarkovModel(tweets, not args.no_clusters, args.use_both)
     if args.manual_entry:
         print "Enter a string to be tagged, then hit enter"
         while True:
