@@ -41,3 +41,9 @@ manual_demo_cluster:
 
 manual_demo_no_cluster:
 	python hmm.py data/all_training_tweets.txt --manual_entry --no_cluster
+
+
+deps:
+	echo "You must have Python (2) and pip installed to run this program"
+	pip install -r requirements.txt
+	echo "Done installing dependencies"
