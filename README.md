@@ -1,5 +1,5 @@
 # tweetmotion
-A twitter bot that guesses the emotion of a tweet
+A twitter bot that guesses the emotion of a tweet. To learn more, read the CS_4701_Final.pdf paper, which is a detailed description of this project and its goals.
 
 To run this program, view the Make targets. Run "make deps" to install all required Python dependencies.
 
